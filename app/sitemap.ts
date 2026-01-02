@@ -1,4 +1,3 @@
-
 import { supabasePublic } from '@/lib/supabase';
 import { MetadataRoute } from 'next';
 
@@ -7,17 +6,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         .from('legislation')
         .select('slug, created_at');
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const legislationUrls = (bills as any[])?.map((bill) => ({
-        url: `https://thedailylaw.com/legislation-summary/${bill.slug}`, // Replace with real domain when live
-        lastModified: new Date(bill.created_at),
-        changeFrequency: 'monthly' as const,
-        priority: 0.8,
-    })) || [];
+    const legislationUrls =
+        bills?.map((bill) => ({
+            url: `https://thedailylaw.org/legislation-summary/${bill.slug}`, // CHANGE .com -> .org
+            lastModified: new Date(bill.created_at),
+            changeFrequency: 'monthly' as const,
+            priority: 0.8,
+        })) ?? [];
 
     return [
         {
-            url: 'https://thedailylaw.com/legislation-summary',
+            url: 'https://thedailylaw.org', // Add homepage
+            lastModified: new Date(),
+            changeFrequency: 'daily',
+            priority: 1,
+        },
+        {
+            url: 'https://thedailylaw.org/legislation-summary', // CHANGE .com -> .org
             lastModified: new Date(),
             changeFrequency: 'daily',
             priority: 1,
