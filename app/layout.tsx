@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Merriweather } from "next/font/google"; // Mixed typography for news feel
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const serif = Merriweather({
@@ -44,6 +45,7 @@ export default function RootLayout({
         <main className="min-h-screen">
           {children}
         </main>
+        <Analytics />
         <footer className="border-t py-12 bg-zinc-50">
           <div className="container mx-auto px-4 text-center text-zinc-500 font-sans text-sm">
             &copy; {new Date().getFullYear()} The Daily Law. Open Source Government Intelligence.
