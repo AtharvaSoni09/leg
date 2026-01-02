@@ -22,13 +22,37 @@ export async function GET(req: NextRequest) {
     const skippedBills: string[] = [];
 
     try {
-        // 2. Fetch Recent Bills
-        console.log("Stage 2: Fetching Recent Bills (Limit 10)...");
-        const bills = await fetchRecentBills(10);
+        // 2. SMART SELECTION LOGIC
+        // Step A: Priority Sweep (Check the 100 most recent bills for today's news)
+        console.log("Stage 2: Priority Sweep (Checking 100 most recent)...");
+        let bills = await fetchRecentBills(100, 0);
+
+        // Step B: Contingency Check
+        // We look for bills we haven't done yet in the top 100.
+        // If we don't find any (very rare), then we switch to Deep Backfill (Archive Discovery).
+        const { data: allIds } = await (supabaseAdmin as any)
+            .from('legislation')
+            .select('bill_id');
+
+        const existingSet = new Set((allIds || []).map((b: any) => b.bill_id));
+        const newBillsInPool = bills.filter(b => !existingSet.has(b.bill_id));
+
+        if (newBillsInPool.length === 0) {
+            console.log("Priority Sweep found no new bills. Switching to Archive Discovery...");
+            const { count: currentCount } = await (supabaseAdmin as any)
+                .from('legislation')
+                .select('*', { count: 'exact', head: true });
+
+            const skipAhead = currentCount || 0;
+            bills = await fetchRecentBills(20, skipAhead);
+        } else {
+            // We found new bills! Use the Priority pool.
+            bills = newBillsInPool;
+        }
 
         if (!bills || bills.length === 0) {
-            console.log("Stage 2: No bills found.");
-            return NextResponse.json({ message: "No bills found." }, { status: 200 });
+            console.log("No unique bills found in either Priority or Archive pools.");
+            return NextResponse.json({ message: "No new bills to process." }, { status: 200 });
         }
 
         for (const bill of bills) {
@@ -109,6 +133,11 @@ export async function GET(req: NextRequest) {
                 console.error(`DB Insert Error for ${bill.bill_id}:`, insertError.message);
             } else {
                 processedBills.push(bill.bill_id);
+
+                // --- PERMANENT FIX: STOP ONCE WE HAVE OUR NEW DAILY ARTICLE ---
+                // We only want to post 1 fresh investigation per day to keep things "The Daily Law"
+                console.log(`SUCCESS: Published ${bill.bill_id}. Stopping cron job.`);
+                break;
             }
         }
 

@@ -32,12 +32,12 @@ function generateCongressGovUrl(congress: number, type: string, number: string):
     return `https://www.congress.gov/bill/${congress}th-congress/${chamberType}/${number}`;
 }
 
-export async function fetchRecentBills(limit: number = 5): Promise<Bill[]> {
+export async function fetchRecentBills(limit: number = 5, offset: number = 0): Promise<Bill[]> {
     const apiKey = process.env.CONGRESS_GOV_API_KEY;
     if (!apiKey) throw new Error("CONGRESS_GOV_API_KEY is missing");
 
     // Fetch from the 119th Congress specifically for recent data
-    const url = `${BASE_URL}/bill/119?sort=updateDate+desc&format=json&limit=${limit}&api_key=${apiKey}`;
+    const url = `${BASE_URL}/bill/119?sort=updateDate+desc&format=json&limit=${limit}&offset=${offset}&api_key=${apiKey}`;
     console.log(`Fetching ${limit} recent bills from the 119th Congress: ${url}`);
 
     try {
