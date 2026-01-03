@@ -168,6 +168,23 @@ export async function GET(req: NextRequest) {
         }
 
         const duration = (Date.now() - startTime) / 1000;
+        
+        // Invalidate sitemap cache after 2 minutes to allow jobs to finish
+        if (processedBills.length > 0) {
+            setTimeout(async () => {
+                try {
+                    // Trigger Next.js ISR to regenerate sitemap
+                    await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/sitemap.xml`, {
+                        method: 'GET',
+                        headers: { 'x-prerender-revalidate': '1' }
+                    });
+                    console.log("Sitemap cache invalidated and regenerated");
+                } catch (e) {
+                    console.error("Failed to regenerate sitemap:", e);
+                }
+            }, 120000); // 2 minutes
+        }
+        
         return NextResponse.json({
             success: true,
             processed: processedBills,

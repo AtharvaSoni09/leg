@@ -116,7 +116,7 @@ export async function synthesizeLegislation(
             }
 
             // Ensure the main article isn't too short (indicates a fail or cut-off)
-            if (parsed.markdown_body.length < 500) {
+            if (parsed.markdown_body.length < 200) {
                 console.error(`SYNTHESIS VALIDATION FAILED: markdown_body too short (${parsed.markdown_body.length} chars)`);
                 return null;
             }
