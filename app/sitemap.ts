@@ -10,7 +10,7 @@ type Bill = {
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Fetch all legislation entries from Supabase
     const { data: bills } = await supabasePublic
-        .from<Bill>('legislation')
+        .from('legislation')
         .select('url_slug, created_at');
 
     const staticUrls: MetadataRoute.Sitemap = [
@@ -36,7 +36,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // Map Supabase bills to sitemap URLs
     const legislationUrls =
-        bills?.map((bill) => ({
+        (bills as Bill[])?.map((bill) => ({
             url: `https://thedailylaw.org/legislation-summary/${bill.url_slug}`,
             lastModified: new Date(bill.created_at),
             changeFrequency: 'monthly' as const,
