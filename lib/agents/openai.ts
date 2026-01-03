@@ -54,28 +54,69 @@ function repairJson(content: string): string {
             const bodyStart = repaired.indexOf('"markdown_body"');
             const afterBodyStart = repaired.indexOf(':', bodyStart) + 1;
             const bodyValueStart = repaired.indexOf('"', afterBodyStart) + 1;
-            let bodyValueEnd = repaired.lastIndexOf('"');
             
-            // If the last quote is before the closing brace, find the actual end
-            const lastBraceIndex = repaired.lastIndexOf('}');
-            if (bodyValueEnd > lastBraceIndex) {
-                bodyValueEnd = repaired.substring(0, lastBraceIndex).lastIndexOf('"');
+            // Find the end by looking for the closing quote that's followed by comma or }
+            let bodyValueEnd = -1;
+            let searchStart = bodyValueStart;
+            
+            while (searchStart < repaired.length) {
+                const nextQuote = repaired.indexOf('"', searchStart + 1);
+                if (nextQuote === -1) break;
+                
+                const afterQuote = repaired.substring(nextQuote + 1);
+                if (afterQuote.startsWith(',') || afterQuote.startsWith('}') || afterQuote.trim().startsWith('}')) {
+                    bodyValueEnd = nextQuote;
+                    break;
+                }
+                searchStart = nextQuote;
+            }
+            
+            // Fallback: use last quote if we didn't find a proper end
+            if (bodyValueEnd === -1) {
+                bodyValueEnd = repaired.lastIndexOf('"');
             }
             
             if (bodyValueStart > 0 && bodyValueEnd > bodyValueStart) {
-                const bodyContent = repaired.substring(bodyValueStart, bodyValueEnd);
+                let bodyContent = repaired.substring(bodyValueStart, bodyValueEnd);
+                
                 // Remove any malformed key-value pairs within the body content
-                const cleanBody = bodyContent
-                    .replace(/",\s*"[^"]+":\s*"/g, ' ')  // Remove malformed key-value pairs
-                    .replace(/",\s*"[^"]+":\s*""/g, ' ')  // Remove empty key-value pairs
-                    .replace(/\n\s*"[^"]+":\s*"[^"]*"/g, '') // Remove line-broken key-value pairs
+                // This handles cases where GPT splits content like: "text": "value", "next key": "more text"
+                bodyContent = bodyContent
+                    .replace(/",\s*"[^"]+":\s*"[^"]*"/g, ' ')  // Remove "key": "value" patterns
+                    .replace(/",\s*"[^"]+":\s*""/g, ' ')      // Remove "key": "" patterns  
+                    .replace(/\n\s*"[^"]+":\s*"[^"]*"/g, ' ')    // Remove line-broken patterns
+                    .replace(/\\u[0-9a-fA-F]{4}/g, '')           // Remove unicode artifacts
+                    .replace(/\s+/g, ' ')                           // Normalize whitespace
                     .trim();
                 
-                // Rebuild the JSON with clean markdown_body
+                // Rebuild the JSON properly - merge all the split content back into one field
                 const beforeBody = repaired.substring(0, bodyStart);
                 const afterBody = repaired.substring(bodyValueEnd + 1);
                 
-                repaired = beforeBody + '"markdown_body": "' + cleanBody + '"' + afterBody;
+                // Find where the split content starts (after the first part of markdown_body)
+                const splitPattern = /"[^"]*":\s*"/g;
+                const matches = repaired.match(splitPattern);
+                
+                if (matches && matches.length > 1) {
+                    // Extract all the content that should be part of markdown_body
+                    let fullBody = bodyContent;
+                    let remainingContent = repaired.substring(bodyValueEnd + 1);
+                    
+                    // Continue extracting content that belongs to markdown_body
+                    const contentPattern = /"[^"]*":\s*"([^"]*(?:\\.[^"]*)*)"/g;
+                    let contentMatch;
+                    
+                    while ((contentMatch = contentPattern.exec(remainingContent)) !== null) {
+                        // Skip the first match (that's our bodyContent), add subsequent ones
+                        if (contentMatch[1] && contentMatch[1].length > 10) { // Only add substantial content
+                            fullBody += ' ' + contentMatch[1];
+                        }
+                    }
+                    
+                    repaired = beforeBody + '"markdown_body": "' + fullBody.trim() + '"' + afterBody;
+                } else {
+                    repaired = beforeBody + '"markdown_body": "' + bodyContent + '"' + afterBody;
+                }
             }
         }
         
