@@ -84,13 +84,15 @@ export async function fetchRecentBills(limit: number = 5, offset: number = 0): P
                         state: s.state,
                         party: s.party
                     })) || [],
-                    cosponsors: (fullBill.cosponsors || []).map((s: any) => ({
-                        name: s.fullName,
-                        bioguideId: s.bioguideId,
-                        state: s.state,
-                        party: s.party,
-                        sponsorshipDate: s.sponsorshipDate
-                    })) || []
+                    cosponsors: Array.isArray(fullBill.cosponsors) 
+                        ? fullBill.cosponsors.map((s: any) => ({
+                            name: s.fullName,
+                            bioguideId: s.bioguideId,
+                            state: s.state,
+                            party: s.party,
+                            sponsorshipDate: s.sponsorshipDate
+                        }))
+                        : []
                 });
             } catch (e) {
                 console.error(`Error fetching detail for bill ${rawBill.number}:`, e);
