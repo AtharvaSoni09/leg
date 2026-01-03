@@ -16,6 +16,42 @@ const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Helper function to repair malformed JSON from GPT
+function repairJson(content: string): string {
+    try {
+        // Try parsing as-is first
+        JSON.parse(content);
+        return content;
+    } catch (e) {
+        console.log("SYNTHESIS: Attempting to repair malformed JSON");
+        
+        // Common GPT JSON issues and fixes
+        let repaired = content;
+        
+        // Fix case where markdown_body gets split into multiple keys
+        if (repaired.includes('"markdown_body"')) {
+            const bodyStart = repaired.indexOf('"markdown_body"');
+            const afterBodyStart = repaired.indexOf(':', bodyStart) + 1;
+            const bodyValueStart = repaired.indexOf('"', afterBodyStart) + 1;
+            const bodyValueEnd = repaired.lastIndexOf('"');
+            
+            if (bodyValueStart > 0 && bodyValueEnd > bodyValueStart) {
+                const bodyContent = repaired.substring(bodyValueStart, bodyValueEnd);
+                // Remove any malformed key-value pairs within the body content
+                const cleanBody = bodyContent.replace(/",\s*"[^"]+":\s*"/g, ' ').replace(/",\s*"[^"]+":\s*""/g, ' ');
+                
+                // Rebuild the JSON with clean markdown_body
+                const beforeBody = repaired.substring(0, bodyStart);
+                const afterBody = repaired.substring(bodyValueEnd + 1);
+                
+                repaired = beforeBody + '"markdown_body": "' + cleanBody.trim() + '"' + afterBody;
+            }
+        }
+        
+        return repaired;
+    }
+}
+
 export async function synthesizeLegislation(
     billTitle: string,
     fullText: string,
@@ -104,7 +140,8 @@ export async function synthesizeLegislation(
         }
 
         try {
-            const parsed = JSON.parse(content) as ResearchOutput;
+            const repairedContent = repairJson(content);
+            const parsed = JSON.parse(repairedContent) as ResearchOutput;
             
             // DEBUG: Log the parsed markdown_body length and preview
             console.log("SYNTHESIS DEBUG: markdown_body length:", parsed.markdown_body?.length || 0);
