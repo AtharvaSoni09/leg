@@ -5,6 +5,7 @@ import { fetchSponsorFunds } from '@/lib/agents/openfec';
 import { fetchNewsContext } from '@/lib/agents/newsdata';
 import { fetchPolicyResearch } from '@/lib/agents/exa';
 import { synthesizeLegislation } from '@/lib/agents/openai';
+import { revalidatePath } from 'next/cache';
 
 export const dynamic = 'force-dynamic';
 
@@ -169,18 +170,15 @@ export async function GET(req: NextRequest) {
 
         const duration = (Date.now() - startTime) / 1000;
         
-        // Invalidate sitemap cache after 2 minutes to allow jobs to finish
+        // Revalidate sitemap cache after 2 minutes to allow jobs to finish
         if (processedBills.length > 0) {
-            setTimeout(async () => {
+            setTimeout(() => {
                 try {
-                    // Trigger Next.js ISR to regenerate sitemap
-                    await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/sitemap.xml`, {
-                        method: 'GET',
-                        headers: { 'x-prerender-revalidate': '1' }
-                    });
-                    console.log("Sitemap cache invalidated and regenerated");
+                    revalidatePath('/sitemap.xml');
+                    revalidatePath('/');
+                    console.log("Sitemap and homepage cache invalidated");
                 } catch (e) {
-                    console.error("Failed to regenerate sitemap:", e);
+                    console.error("Failed to revalidate cache:", e);
                 }
             }, 120000); // 2 minutes
         }

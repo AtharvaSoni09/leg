@@ -1,5 +1,9 @@
 import { supabasePublic } from '@/lib/supabase';
 import { MetadataRoute } from 'next';
+import { revalidatePath } from 'next/cache';
+
+// Enable ISR for sitemap (revalidate every hour)
+export const revalidate = 3600;
 
 // Define TypeScript type for a row in your legislation table
 type Bill = {
