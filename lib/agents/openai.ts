@@ -8,6 +8,8 @@ export interface ResearchOutput {
     meta_description: string;
     markdown_body: string;
     tldr: string; // Plain English summary for Section 1
+    keywords: string[]; // SEO keywords
+    schema_type: string; // "Legislation" or "NewsArticle"
 }
 
 const openai = new OpenAI({
@@ -45,6 +47,13 @@ export async function synthesizeLegislation(
     - SCHOLARLY: Use formal, precise language. Avoid conversational styles.
     - PROFESSIONAL: Sound like a non-partisan policy analyst for a high-end publication (like The Economist).
     
+    CRITICAL REQUIREMENTS:
+    - FIRST PARAGRAPH: MUST start with a paragraph summary that INCLUDES THE EXACT BILL NAME from the input title.
+    - USE ACTUAL BILL NAME: Use the bill name as provided in the input, not a modified version.
+    - If bill has a common name or short title, use that in your summary.
+    - TLDR: MUST include a 2-3 sentence "Impact Statement" answering "Who benefits?" and "Why it matters?"
+    - SEO FOCUS: Include bill numbers naturally in headers and content for search ranking.
+    
     IMPORTANT:
     - Use ONLY the provided context parts (Sponsor, News, Research).
     - If info is missing, state it clearly.
@@ -52,10 +61,12 @@ export async function synthesizeLegislation(
     
     FORMAT:
     Return a detailed JSON object with the fields:
-    - seo_title: Catchy but accurate title (60 chars max)
-    - url_slug: SEO friendly slug
-    - meta_description: 150 chars max summary
-    - tldr: A 2-3 sentence "Impact Statement" (scholarly tone).
+    - seo_title: Use format "[bill name] (HR XXX) explained: Who It Helps, Who Pays, and Why It Matters" - 80 chars max
+    - url_slug: SEO friendly slug with bill number
+    - meta_description: 150 chars max summary including bill number and key impact
+    - tldr: A 2-3 sentence "Impact Statement" answering "Who benefits?" and "Why it matters?" (scholarly tone).
+    - keywords: 5-7 relevant keywords for SEO (bill number, sponsor name, policy area, key terms)
+    - schema_type: "Legislation" or "NewsArticle" based on content
     - markdown_body: The full article as a cohesive narrative with bolded headers and double-spaced paragraphs. 
   `;
 
@@ -96,7 +107,7 @@ export async function synthesizeLegislation(
             const parsed = JSON.parse(content) as ResearchOutput;
 
             // VALIDATION: Ensure all fields are present and substantial
-            const requiredFields = ['seo_title', 'url_slug', 'meta_description', 'tldr', 'markdown_body'];
+            const requiredFields = ['seo_title', 'url_slug', 'meta_description', 'tldr', 'markdown_body', 'keywords', 'schema_type'];
             const missingFields = requiredFields.filter(f => !parsed[f as keyof ResearchOutput]);
 
             if (missingFields.length > 0) {

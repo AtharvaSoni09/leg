@@ -18,14 +18,16 @@ export async function fetchSponsorFunds(sponsorName: string): Promise<SponsorFun
     let cleanName = sponsorName
         .replace(/^(rep\.|sen\.|congressman|congresswoman|hon\.)\s+/i, '')
         .replace(/\[.*\]$/, '') // Remove [R-NY-2]
-        .split(',')[0] // Take first part of "Last, First"
         .trim();
 
     // If it's "Last, First", we can also try to reconstruct "First Last"
-    const parts = sponsorName.split(',').map(p => p.trim());
-    if (parts.length > 1) {
-        const firstName = parts[1].split(' ')[0]; // Take first word of "John [R-NY-2]"
+    const parts = cleanName.split(',').map(p => p.trim());
+    if (parts.length >= 2) {
+        const firstName = parts[1].split(' ')[0]; // Take first word after comma
         cleanName = `${firstName} ${parts[0]}`;
+    } else if (parts.length === 1) {
+        // If it's just one part, try it as-is
+        cleanName = parts[0];
     }
 
     try {
@@ -38,19 +40,15 @@ export async function fetchSponsorFunds(sponsorName: string): Promise<SponsorFun
 
         const candidateId = candidate.candidate_id;
 
-        // 2. Fetch totals (Committee totals)
-        const committeeUrl = `${BASE_URL}/candidate/${candidateId}/committees/?api_key=${apiKey}`;
-        const commRes = await fetch(committeeUrl);
-        const commData = await commRes.json();
+        // 2. Fetch candidate totals (historical data)
+        const totalsUrl = `${BASE_URL}/candidate/${candidateId}/totals/?api_key=${apiKey}&sort=-cycle&per_page=10`;
+        const totalsRes = await fetch(totalsUrl);
+        const totalsData = await totalsRes.json();
 
-        const pcc = commData.results?.find((c: any) => c.designation === 'P');
-
+        // Get the maximum receipts from all cycles
         let total = 0;
-        if (pcc) {
-            const totalsUrl = `${BASE_URL}/committee/${pcc.committee_id}/totals/?api_key=${apiKey}&sort=-cycle&per_page=1`;
-            const totalsRes = await fetch(totalsUrl);
-            const totalsData = await totalsRes.json();
-            total = totalsData.results?.[0]?.receipts || 0;
+        if (totalsData.results && totalsData.results.length > 0) {
+            total = Math.max(...totalsData.results.map((r: any) => r.receipts || 0));
         }
 
         return {

@@ -45,11 +45,27 @@ export default async function LegislationSummary() {
                                     Editor's Choice • Bill {featuredBill.bill_id}
                                 </span>
                                 <h2 className="text-2xl md:text-4xl font-serif font-black mb-6 leading-tight tracking-tight">
-                                    {featuredBill.title}
+                                    {featuredBill.seo_title || featuredBill.title}
                                 </h2>
-                                <p className="text-base md:text-lg text-zinc-400 font-sans leading-relaxed mb-8 max-w-2xl">
+                                <p className="text-base md:text-lg text-zinc-400 font-sans leading-relaxed mb-6 max-w-2xl">
                                     {featuredBill.tldr}
                                 </p>
+                                
+                                {/* Bill Status for Featured Bill */}
+                                {featuredBill.latest_action && (
+                                    <div className="bg-zinc-800 border border-zinc-700 rounded-lg p-4 mb-6 text-left max-w-2xl">
+                                        <div className="flex items-center text-zinc-300">
+                                            <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                                            <div>
+                                                <div className="font-semibold text-xs uppercase tracking-wide text-blue-400">Latest Action</div>
+                                                <div className="text-xs mt-1 text-zinc-400">
+                                                    {featuredBill.latest_action.actionDate && new Date(featuredBill.latest_action.actionDate).toLocaleDateString()}
+                                                    {featuredBill.latest_action.text && `: ${featuredBill.latest_action.text}`}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                                 <a
                                     href={`/legislation-summary/${featuredBill.url_slug}`}
                                     className="bg-white text-zinc-900 px-6 py-3 rounded-full font-bold font-sans text-xs tracking-widest uppercase hover:bg-zinc-200 transition-colors inline-block"
@@ -73,9 +89,10 @@ export default async function LegislationSummary() {
                         key={bill.id}
                         slug={bill.url_slug}
                         bill_id={bill.bill_id}
-                        title={bill.title}
+                        title={bill.seo_title || bill.title}
                         summary={bill.tldr || "No summary available."}
                         date={formatDate(bill.created_at)}
+                        latestAction={bill.latest_action}
                     />
                 ))}
 

@@ -19,10 +19,17 @@ export interface Database {
           tldr: string | null
           seo_title: string | null
           meta_description: string | null
+          keywords: Json | null
+          schema_type: string | null
           origin_chamber: string | null
           type: string | null
           congress: number | null
           update_date: string | null
+          introduced_date: string | null
+          latest_action: Json | null
+          sponsors: Json | null
+          cosponsors: Json | null
+          cosponsors_funds: Json | null
           sponsor_data: Json | null
           news_context: Json | null
           policy_research: Json | null
@@ -39,10 +46,17 @@ export interface Database {
           tldr?: string | null
           seo_title?: string | null
           meta_description?: string | null
+          keywords?: Json | null
+          schema_type?: string | null
           origin_chamber?: string | null
           type?: string | null
           congress?: number | null
           update_date?: string | null
+          introduced_date?: string | null
+          latest_action?: Json | null
+          sponsors?: Json | null
+          cosponsors?: Json | null
+          cosponsors_funds?: Json | null
           sponsor_data?: Json | null
           news_context?: Json | null
           policy_research?: Json | null
@@ -59,10 +73,17 @@ export interface Database {
           tldr?: string | null
           seo_title?: string | null
           meta_description?: string | null
+          keywords?: Json | null
+          schema_type?: string | null
           origin_chamber?: string | null
           type?: string | null
           congress?: number | null
           update_date?: string | null
+          introduced_date?: string | null
+          latest_action?: Json | null
+          sponsors?: Json | null
+          cosponsors?: Json | null
+          cosponsors_funds?: Json | null
           sponsor_data?: Json | null
           news_context?: Json | null
           policy_research?: Json | null

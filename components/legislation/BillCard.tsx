@@ -10,9 +10,13 @@ interface BillCardProps {
     title: string;
     summary: string;
     date: string;
+    latestAction?: {
+        text: string;
+        actionDate: string;
+    };
 }
 
-export function BillCard({ slug, bill_id, title, summary, date }: BillCardProps) {
+export function BillCard({ slug, bill_id, title, summary, date, latestAction }: BillCardProps) {
     return (
         <Link href={`/legislation-summary/${slug}`} className="group">
             <Card className="h-full border-zinc-200 shadow-sm hover:shadow-md transition-all duration-200 group-hover:border-zinc-400 rounded-none">
@@ -31,9 +35,18 @@ export function BillCard({ slug, bill_id, title, summary, date }: BillCardProps)
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-zinc-600 font-serif leading-relaxed line-clamp-3 text-sm">
+                    <p className="text-zinc-600 font-serif leading-relaxed line-clamp-3 text-sm mb-3">
                         {summary}
                     </p>
+                    
+                    {/* Tiny Status Section */}
+                    {latestAction && (
+                        <div className="text-xs text-zinc-500 font-sans italic border-t border-zinc-100 pt-2">
+                            {latestAction.text.length > 60 
+                                ? `${latestAction.text.substring(0, 60)}...` 
+                                : latestAction.text}
+                        </div>
+                    )}
                 </CardContent>
                 <CardFooter className="pt-0">
                     <div className="flex items-center text-blue-700 font-sans text-xs font-bold uppercase tracking-wide group-hover:underline">

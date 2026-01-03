@@ -85,6 +85,15 @@ export async function GET(req: NextRequest) {
             const searchQuery = `${bill.bill_id} ${bill.title.split(' ').slice(0, 10).join(' ')}`;
             console.log(`[Research] Search query: ${searchQuery}`);
 
+            // Fetch cosponsors funds if there are cosponsors
+            const cosponsorsFunds = bill.cosponsors && bill.cosponsors.length > 0
+                ? await Promise.all(
+                    bill.cosponsors.map(cosponsor => 
+                        safeFetch(`CosponsorFunds-${cosponsor.name}`, fetchSponsorFunds(cosponsor.name))
+                    )
+                )
+                : [];
+
             const [sponsorFunds, newsContext, policyResearch] = await Promise.all([
                 safeFetch("SponsorFunds", bill.sponsors && bill.sponsors.length > 0
                     ? fetchSponsorFunds(bill.sponsors[0].name)
@@ -125,10 +134,17 @@ export async function GET(req: NextRequest) {
                     type: bill.type,
                     update_date: bill.updateDate,
                     origin_chamber: bill.originChamber,
+                    introduced_date: bill.introducedDate,
+                    latest_action: JSON.parse(JSON.stringify(bill.latestAction || {})),
+                    sponsors: JSON.parse(JSON.stringify(bill.sponsors || [])),
+                    cosponsors: JSON.parse(JSON.stringify(bill.cosponsors || [])),
+                    cosponsors_funds: JSON.parse(JSON.stringify(cosponsorsFunds || [])),
                     seo_title: article.seo_title.slice(0, 255),
                     url_slug: article.url_slug.slice(0, 255),
                     meta_description: article.meta_description.slice(0, 255),
                     tldr: article.tldr.slice(0, 1000),
+                    keywords: JSON.parse(JSON.stringify(article.keywords || [])),
+                    schema_type: article.schema_type || 'Legislation',
                     markdown_body: article.markdown_body.slice(0, 50000),
                     sponsor_data: JSON.parse(JSON.stringify(sponsorFunds || {})),
                     news_context: JSON.parse(JSON.stringify(newsContext || [])).slice(0, 5),

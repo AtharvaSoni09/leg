@@ -7,11 +7,23 @@ export interface Bill {
     updateDate: string;
     url: string;
     congressGovUrl: string;
+    introducedDate?: string;
+    latestAction?: {
+        actionDate: string;
+        text: string;
+    };
     sponsors?: {
         name: string;
         bioguideId: string;
         state: string;
         party: string;
+    }[];
+    cosponsors?: {
+        name: string;
+        bioguideId: string;
+        state: string;
+        party: string;
+        sponsorshipDate?: string;
     }[];
 }
 
@@ -64,11 +76,20 @@ export async function fetchRecentBills(limit: number = 5, offset: number = 0): P
                     updateDate: rawBill.updateDate,
                     url: rawBill.url,
                     congressGovUrl: generateCongressGovUrl(rawBill.congress, rawBill.type, rawBill.number),
+                    introducedDate: fullBill.introducedDate,
+                    latestAction: fullBill.latestAction,
                     sponsors: fullBill.sponsors?.map((s: any) => ({
                         name: s.fullName,
                         bioguideId: s.bioguideId,
                         state: s.state,
                         party: s.party
+                    })) || [],
+                    cosponsors: fullBill.cosponsors?.map((s: any) => ({
+                        name: s.fullName,
+                        bioguideId: s.bioguideId,
+                        state: s.state,
+                        party: s.party,
+                        sponsorshipDate: s.sponsorshipDate
                     })) || []
                 });
             } catch (e) {

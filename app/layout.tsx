@@ -13,6 +13,10 @@ const serif = Merriweather({
 export const metadata: Metadata = {
   title: "The Daily Law | Transparent Legislation",
   description: "AI-powered investigative journalism for US legislation.",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+  },
 };
 
 import Link from "next/link";
@@ -37,7 +41,9 @@ export default function RootLayout({
               <span className="bg-white text-black px-2 py-1 font-bold font-sans text-xs tracking-widest uppercase">The Daily Law</span>
             </Link>
             <nav className="text-sm font-sans text-zinc-400">
-              <span>Est. 2024</span>
+              <Link href="/about" className="hover:text-white transition-colors mr-4">About</Link>
+              <Link href="/how-we-report" className="hover:text-white transition-colors mr-4">How We Report</Link>
+              <Link href="/disclaimer" className="hover:text-white transition-colors">Disclaimer</Link>
             </nav>
           </div>
         </header>
