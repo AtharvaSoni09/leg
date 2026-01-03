@@ -84,7 +84,7 @@ export async function fetchRecentBills(limit: number = 5, offset: number = 0): P
                         state: s.state,
                         party: s.party
                     })) || [],
-                    cosponsors: fullBill.cosponsors?.map((s: any) => ({
+                    cosponsors: (fullBill.cosponsors || []).map((s: any) => ({
                         name: s.fullName,
                         bioguideId: s.bioguideId,
                         state: s.state,
