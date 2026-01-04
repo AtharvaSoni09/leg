@@ -1,14 +1,31 @@
 import { supabasePublic } from '@/lib/supabase';
 import { BillCard } from '@/components/legislation/BillCard';
 import { formatDate } from '@/lib/date-utils';
+import { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = {
+  title: "Latest Legislation | The Daily Law",
+  description: "Comprehensive analysis of recent US legislation and bills. AI-powered insights on congressional actions and policy changes.",
+  openGraph: {
+    title: "Latest Legislation | The Daily Law",
+    description: "Comprehensive analysis of recent US legislation and bills. AI-powered insights on congressional actions and policy changes.",
+    url: "https://thedailylaw.org/legislation-summary",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Latest Legislation | The Daily Law",
+    description: "Comprehensive analysis of recent US legislation and bills. AI-powered insights on congressional actions and policy changes.",
+  },
+};
 
 export default async function LegislationSummary() {
     const { data: bills, error } = await supabasePublic
         .from('legislation')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('update_date', { ascending: false }); // Sort by latest legislative action
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const allBills = (bills as any[]) || [];
 

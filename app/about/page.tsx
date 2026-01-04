@@ -1,9 +1,19 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'About The Daily Law | Non-Partisan Legislative Analysis',
-  description: 'The Daily Law provides transparent, AI-powered analysis of U.S. legislation. Our mission is to make complex bills accessible through clear, non-partisan policy briefs.',
-  keywords: ['legislative analysis', 'bill tracking', 'policy research', 'government transparency'],
+  title: 'About The Daily Law | AI-Powered Legislative Analysis',
+  description: 'The Daily Law provides transparent, AI-assisted analysis of U.S. legislation. Our mission is to make complex bills accessible through clear, non-partisan policy briefs with full methodology disclosure.',
+  openGraph: {
+    title: 'About The Daily Law | AI-Powered Legislative Analysis',
+    description: 'The Daily Law provides transparent, AI-assisted analysis of U.S. legislation with full methodology disclosure.',
+    url: 'https://thedailylaw.org/about',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'About The Daily Law | AI-Powered Legislative Analysis',
+    description: 'The Daily Law provides transparent, AI-assisted analysis of U.S. legislation with full methodology disclosure.',
+  },
 };
 
 export default function AboutPage() {
@@ -20,7 +30,7 @@ export default function AboutPage() {
                 About The Daily Law
               </h1>
               <p className="mt-4 text-sm sm:text-base text-zinc-600 font-sans leading-relaxed">
-                Transparent, non-partisan legislative analysis—powered by public data and careful synthesis.
+                Transparent, AI-assisted legislative analysis—powered by public data and careful synthesis.
               </p>
             </div>
             <div className="md:col-span-2 border-t md:border-t-0 md:border-l border-zinc-200">
@@ -44,8 +54,34 @@ export default function AboutPage() {
           </div>
         </section>
 
+        <section className="rounded-2xl border border-purple-200 bg-purple-50 p-8">
+          <h2 className="text-2xl font-serif font-black text-purple-900">AI Disclosure & Methodology</h2>
+          <div className="mt-4 space-y-4 text-zinc-700 leading-relaxed">
+            <p>
+              <span className="font-semibold">Transparency First:</span> Articles are generated using an AI-assisted research process 
+              and are reviewed for accuracy, neutrality, and sourcing. We believe in full disclosure of our methods 
+              rather than hiding behind AI.
+            </p>
+            <p>
+              <span className="font-semibold">Our Process:</span> We use advanced language models to synthesize information from 
+              official government sources, news coverage, and policy research. The AI helps identify key impacts, 
+              stakeholder perspectives, and legislative context that might be missed in traditional analysis.
+            </p>
+            <p>
+              <span className="font-semibold">Human Oversight:</span> While AI assists in research and synthesis, our editorial 
+              standards ensure accuracy, non-partisanship, and proper attribution. All sources are clearly cited, 
+              and our methodology is continuously refined for improvement.
+            </p>
+            <p>
+              <span className="font-semibold">Limitations:</span> AI analysis may occasionally miss nuanced context or misinterpret 
+              complex legal language. We encourage readers to consult primary sources and official congressional documents 
+              for complete accuracy.
+            </p>
+          </div>
+        </section>
+
         <section className="rounded-2xl border border-blue-200 bg-blue-50 p-8">
-          <h2 className="text-2xl font-serif font-black text-blue-900">Our Methodology</h2>
+          <h2 className="text-2xl font-serif font-black text-blue-900">Our Research Methodology</h2>
           <div className="mt-4 space-y-4 text-zinc-700 leading-relaxed">
             <p>
               <span className="font-semibold">1. Official Data Sources:</span> We start with official congressional data
@@ -53,7 +89,7 @@ export default function AboutPage() {
             </p>
             <p>
               <span className="font-semibold">2. Financial Transparency:</span> We integrate FEC data to show
-              the money trail behind legislation—who sponsors are, how much they’ve raised,
+              the money trail behind legislation—who sponsors are, how much they've raised,
               and what industries support them.
             </p>
             <p>
@@ -64,6 +100,36 @@ export default function AboutPage() {
               <span className="font-semibold">4. AI-Powered Synthesis:</span> Our AI analyzes all this data to
               produce cohesive, non-partisan briefs that highlight key impacts and trade-offs.
             </p>
+            <p>
+              <span className="font-semibold">5. Editorial Review:</span> Content is reviewed for accuracy, neutrality,
+              and proper sourcing before publication.
+            </p>
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-green-200 bg-green-50 p-8">
+          <h2 className="text-2xl font-serif font-black text-green-900">Primary Sources</h2>
+          <div className="mt-4 space-y-4 text-zinc-700 leading-relaxed">
+            <p>
+              <span className="font-semibold">Congress.gov:</span> Official source for bill text, status, sponsor information, 
+              and legislative history. All bills link directly to their official Congress.gov pages.
+            </p>
+            <p>
+              <span className="font-semibold">Federal Election Commission (FEC):</span> Campaign finance data for sponsors 
+              and cosponsors, showing funding sources and industry connections.
+            </p>
+            <p>
+              <span className="font-semibold">Federal Register:</span> Executive actions, proposed rules, and official 
+              government publications that provide context for legislation.
+            </p>
+            <p>
+              <span className="font-semibold">Congressional Record:</span> Floor proceedings, debates, and official statements 
+              from members of Congress.
+            </p>
+            <p>
+              <span className="font-semibold">Supreme Court Opinions:</span> Judicial interpretations that affect legislative 
+              implementation and constitutional considerations.
+            </p>
           </div>
         </section>
 
@@ -71,13 +137,13 @@ export default function AboutPage() {
           <h2 className="text-2xl font-serif font-black text-amber-900">Why We Exist</h2>
           <div className="mt-4 space-y-4 text-zinc-700 leading-relaxed">
             <p>
-              Legislative complexity shouldn’t be a barrier to civic engagement.
+              Legislative complexity shouldn't be a barrier to civic engagement.
               Traditional bill tracking requires navigating thousands of pages of legal text,
               understanding procedural jargon, and connecting disparate data sources.
             </p>
             <p>
               The Daily Law bridges this gap. We do the heavy lifting of data synthesis
-              so you can focus on what matters: understanding legislation’s impact on your community,
+              so you can focus on what matters: understanding legislation's impact on your community,
               your industry, and your country.
             </p>
           </div>
@@ -101,6 +167,10 @@ export default function AboutPage() {
             <li className="flex items-start gap-2">
               <span className="text-green-600">✓</span>
               <span><span className="font-semibold">Accountability:</span> We show who benefits and who pays, not just what the bill says.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-green-600">✓</span>
+              <span><span className="font-semibold">Accuracy:</span> Primary sources are always linked, AI assistance is always disclosed.</span>
             </li>
           </ul>
         </section>

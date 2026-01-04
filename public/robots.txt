@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /_next/
+Disallow: /admin/
+
+Sitemap: https://thedailylaw.org/sitemap.xml
+
+# Allow search engines to crawl all public content
+# Block API routes and Next.js internals
+Crawl-delay: 1

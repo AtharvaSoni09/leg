@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
-import { Inter, Merriweather } from "next/font/google"; // Mixed typography for news feel
+import { Inter, Merriweather } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { LayoutWrapper } from '@/components/layout/layout-wrapper';
+import { Header } from '@/components/layout/header-white';
+import { Footer } from '@/components/layout/footer';
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const serif = Merriweather({
@@ -17,9 +20,20 @@ export const metadata: Metadata = {
     icon: "/favicon.ico",
     shortcut: "/favicon.ico",
   },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://thedailylaw.org",
+    siteName: "The Daily Law",
+    title: "The Daily Law | Transparent Legislation",
+    description: "AI-powered investigative journalism for US legislation.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "The Daily Law | Transparent Legislation",
+    description: "AI-powered investigative journalism for US legislation.",
+  },
 };
-
-import Link from "next/link";
 
 export default function RootLayout({
   children,
@@ -28,6 +42,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="canonical" href="https://thedailylaw.org" />
+      </head>
       <body
         className={cn(
           "min-h-screen bg-background font-serif antialiased",
@@ -35,26 +52,10 @@ export default function RootLayout({
           serif.variable
         )}
       >
-        <header className="border-b bg-zinc-950 text-white py-4">
-          <div className="container mx-auto px-4 flex items-center justify-between">
-            <Link href="/legislation-summary" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-              <span className="bg-white text-black px-2 py-1 font-bold font-sans text-xs tracking-widest uppercase">The Daily Law</span>
-            </Link>
-            <nav className="text-sm font-sans text-zinc-400">
-              <Link href="/about" className="hover:text-white transition-colors mr-4">About</Link>
-              <Link href="/how-we-report" className="hover:text-white transition-colors mr-4">How We Report</Link>
-              <Link href="/disclaimer" className="hover:text-white transition-colors">Disclaimer</Link>
-            </nav>
-          </div>
-        </header>
-        <main className="min-h-screen">
+        <LayoutWrapper>
           {children}
-        </main>
-        <footer className="border-t py-12 bg-zinc-50">
-          <div className="container mx-auto px-4 text-center text-zinc-500 font-sans text-sm">
-            &copy; {new Date().getFullYear()} The Daily Law. Open Source Government Intelligence.
-          </div>
-        </footer>
+        </LayoutWrapper>
+        <Footer />
       </body>
     </html>
   );

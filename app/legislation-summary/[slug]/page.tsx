@@ -1,13 +1,14 @@
 
 import { supabasePublic } from '@/lib/supabase';
 import { notFound } from 'next/navigation';
-import ReactMarkdown from 'react-markdown'; // Ensure user installs this or we use simple rendering
+import ReactMarkdown from 'react-markdown';
 import { Metadata } from 'next';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { ExternalLink, BookOpen, Scale } from 'lucide-react';
 import { formatDate } from '@/lib/date-utils';
+import { RelatedArticles } from '@/components/legislation/RelatedArticles';
 
 // Force dynamic rendering for these pages
 export const dynamic = 'force-dynamic';
@@ -31,14 +32,25 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const bill = await getBill(slug);
     if (!bill) return { title: 'Not Found' };
 
+    const canonicalUrl = `https://thedailylaw.org/legislation-summary/${slug}`;
+
     return {
         title: `${bill.seo_title || bill.title} | The Daily Law`,
-        description: bill.tldr || "Legislative analysis.",
+        description: bill.meta_description || bill.tldr || "Legislative analysis.",
         openGraph: {
             title: bill.seo_title || bill.title,
-            description: bill.tldr || "",
+            description: bill.meta_description || bill.tldr || "",
             type: "article",
-        }
+            url: canonicalUrl,
+        },
+        twitter: {
+            card: "summary_large_image",
+            title: bill.seo_title || bill.title,
+            description: bill.meta_description || bill.tldr || "",
+        },
+        alternates: {
+            canonical: canonicalUrl,
+        },
     };
 }
 
@@ -279,6 +291,8 @@ export default async function BillPage({ params }: PageProps) {
                     )}
                 </div>
             </div>
+            
+            <RelatedArticles currentBill={bill} />
         </div>
     );
 }

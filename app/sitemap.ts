@@ -21,22 +21,94 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     const staticUrls: MetadataRoute.Sitemap = [
         {
+            url: 'https://thedailylaw.org',
+            lastModified: new Date(),
+            changeFrequency: 'daily',
+            priority: 1,
+        },
+        {
+            url: 'https://thedailylaw.org/legislation-summary',
+            lastModified: new Date(),
+            changeFrequency: 'daily',
+            priority: 1,
+        },
+        {
             url: 'https://thedailylaw.org/about',
             lastModified: new Date(),
             changeFrequency: 'monthly',
             priority: 0.6,
         },
         {
-            url: 'https://thedailylaw.org/how-we-report',
+            url: 'https://thedailylaw.org/about/editorial-process',
             lastModified: new Date(),
             changeFrequency: 'monthly',
             priority: 0.6,
         },
         {
-            url: 'https://thedailylaw.org/disclaimer',
+            url: 'https://thedailylaw.org/about/sources',
             lastModified: new Date(),
             changeFrequency: 'monthly',
-            priority: 0.5,
+            priority: 0.6,
+        },
+        {
+            url: 'https://thedailylaw.org/topics/congress',
+            lastModified: new Date(),
+            changeFrequency: 'weekly',
+            priority: 0.8,
+        },
+        {
+            url: 'https://thedailylaw.org/topics/technology-law',
+            lastModified: new Date(),
+            changeFrequency: 'weekly',
+            priority: 0.8,
+        },
+        {
+            url: 'https://thedailylaw.org/topics/national-security',
+            lastModified: new Date(),
+            changeFrequency: 'weekly',
+            priority: 0.8,
+        },
+        {
+            url: 'https://thedailylaw.org/topics/healthcare',
+            lastModified: new Date(),
+            changeFrequency: 'weekly',
+            priority: 0.8,
+        },
+        {
+            url: 'https://thedailylaw.org/topics/economy',
+            lastModified: new Date(),
+            changeFrequency: 'weekly',
+            priority: 0.8,
+        },
+        {
+            url: 'https://thedailylaw.org/topics/energy',
+            lastModified: new Date(),
+            changeFrequency: 'weekly',
+            priority: 0.8,
+        },
+        {
+            url: 'https://thedailylaw.org/topics/immigration',
+            lastModified: new Date(),
+            changeFrequency: 'weekly',
+            priority: 0.8,
+        },
+        {
+            url: 'https://thedailylaw.org/topics/education',
+            lastModified: new Date(),
+            changeFrequency: 'weekly',
+            priority: 0.8,
+        },
+        {
+            url: 'https://thedailylaw.org/topics/infrastructure',
+            lastModified: new Date(),
+            changeFrequency: 'weekly',
+            priority: 0.8,
+        },
+        {
+            url: 'https://thedailylaw.org/search',
+            lastModified: new Date(),
+            changeFrequency: 'monthly',
+            priority: 0.7,
         },
     ];
 
