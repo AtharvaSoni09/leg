@@ -58,7 +58,11 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ message: "No new bills to process." }, { status: 200 });
         }
 
-        for (const bill of bills) {
+        // Process up to 3 bills in parallel
+        const billsToProcess = bills.slice(0, 3);
+        console.log(`\n--- Processing ${billsToProcess.length} bills in parallel ---`);
+
+        const processBill = async (bill: any) => {
             console.log(`\n--- Processing Bill: ${bill.bill_id} ---`);
 
             // 3. Duplicate Check
@@ -71,7 +75,7 @@ export async function GET(req: NextRequest) {
             if (existing) {
                 console.log(`Bill ${bill.bill_id} already exists. Skipping.`);
                 skippedBills.push(bill.bill_id);
-                continue;
+                return null;
             }
 
             // 4. Research Phase
@@ -90,7 +94,7 @@ export async function GET(req: NextRequest) {
             // Fetch cosponsors funds if there are cosponsors
             const cosponsorsFunds = bill.cosponsors && bill.cosponsors.length > 0
                 ? await Promise.all(
-                    bill.cosponsors.map(cosponsor => 
+                    bill.cosponsors.map((cosponsor: any) =>
                         safeFetch(`CosponsorFunds-${cosponsor.name}`, fetchSponsorFunds(cosponsor.name))
                     )
                 )
@@ -105,77 +109,95 @@ export async function GET(req: NextRequest) {
             ]);
 
             // 5. Synthesis Phase
-            // Wrap in a timeout helper that resolves to null
-            // This prevents a single slow bill from crashing the whole cron job
-            const timeout = (ms: number) => new Promise((resolve) => {
-                setTimeout(() => {
-                    console.log(`SYNTHESIS TIMEOUT: ${bill.bill_id} timed out after ${ms}ms`);
-                    resolve(null);
-                }, ms);
-            });
-
             console.log(`SYNTHESIS: Starting race for ${bill.bill_id}`);
-            const article = await Promise.race([
-                synthesizeLegislation(
-                    bill.title,
-                    bill.title,
-                    sponsorFunds,
-                    newsContext,
-                    policyResearch,
-                    bill.congressGovUrl
-                ),
-                timeout(80000) // 80s limit per bill to keep 3-bill batch under 300s
-            ]) as any;
+            const synthesisStart = Date.now();
 
-            if (!article) {
+            const synthesisResult = await synthesizeLegislation(
+                bill.title,
+                bill.title,
+                sponsorFunds,
+                newsContext,
+                policyResearch,
+                bill.congressGovUrl
+            );
+
+            const synthesisTime = Date.now() - synthesisStart;
+            console.log(`SYNTHESIS: Completed for ${bill.bill_id} in ${synthesisTime}ms`);
+
+            if (!synthesisResult) {
                 console.error(`Failed synthesis for ${bill.bill_id} (likely timeout or API error)`);
-                continue;
+                return null;
             }
 
-            // 6. DB Storage - Using 'as any' to bypass Vercel strict build errors on table types
-            // Use standardized slug for consistency
+            // 6. Database Insertion
             const standardSlug = generateSlug(bill.bill_id);
-            
+            const insertData = {
+                bill_id: bill.bill_id,
+                title: bill.title.slice(0, 255),
+                congress: bill.congress,
+                type: bill.type,
+                update_date: bill.updateDate,
+                origin_chamber: bill.originChamber,
+                introduced_date: bill.introducedDate,
+                latest_action: JSON.parse(JSON.stringify(bill.latestAction || {})),
+                sponsors: JSON.parse(JSON.stringify(bill.sponsors || [])),
+                cosponsors: JSON.parse(JSON.stringify(bill.cosponsors || [])),
+                cosponsors_funds: JSON.parse(JSON.stringify(cosponsorsFunds || [])),
+                seo_title: synthesisResult.seo_title.slice(0, 255),
+                url_slug: standardSlug, // Use standardized slug
+                meta_description: synthesisResult.meta_description.slice(0, 255),
+                tldr: synthesisResult.tldr.slice(0, 1000),
+                keywords: JSON.parse(JSON.stringify(synthesisResult.keywords || [])),
+                schema_type: synthesisResult.schema_type || 'Legislation',
+                markdown_body: synthesisResult.markdown_body.slice(0, 50000),
+                sponsor_data: JSON.parse(JSON.stringify(sponsorFunds || {})),
+                news_context: JSON.parse(JSON.stringify(newsContext || [])).slice(0, 5),
+                policy_research: JSON.parse(JSON.stringify(policyResearch || [])).slice(0, 3),
+                congress_gov_url: bill.congressGovUrl,
+                is_published: true
+            };
+
             const { error: insertError } = await (supabaseAdmin as any)
                 .from('legislation')
-                .insert({
-                    bill_id: bill.bill_id,
-                    title: bill.title.slice(0, 255),
-                    congress: bill.congress,
-                    type: bill.type,
-                    update_date: bill.updateDate,
-                    origin_chamber: bill.originChamber,
-                    introduced_date: bill.introducedDate,
-                    latest_action: JSON.parse(JSON.stringify(bill.latestAction || {})),
-                    sponsors: JSON.parse(JSON.stringify(bill.sponsors || [])),
-                    cosponsors: JSON.parse(JSON.stringify(bill.cosponsors || [])),
-                    cosponsors_funds: JSON.parse(JSON.stringify(cosponsorsFunds || [])),
-                    seo_title: article.seo_title.slice(0, 255),
-                    url_slug: standardSlug, // Use standardized slug
-                    meta_description: article.meta_description.slice(0, 255),
-                    tldr: article.tldr.slice(0, 1000),
-                    keywords: JSON.parse(JSON.stringify(article.keywords || [])),
-                    schema_type: article.schema_type || 'Legislation',
-                    markdown_body: article.markdown_body.slice(0, 50000),
-                    sponsor_data: JSON.parse(JSON.stringify(sponsorFunds || {})),
-                    news_context: JSON.parse(JSON.stringify(newsContext || [])).slice(0, 5),
-                    policy_research: JSON.parse(JSON.stringify(policyResearch || [])).slice(0, 3),
-                    congress_gov_url: bill.congressGovUrl,
-                    is_published: true
-                });
+                .insert(insertData);
 
             if (insertError) {
-                console.error(`DB Insert Error for ${bill.bill_id}:`, insertError.message);
-            } else {
-                processedBills.push(bill.bill_id);
-
-                // --- NORMAL OPERATION: Process up to 3 per run ---
-                console.log(`SUCCESS: Published ${bill.bill_id}.`);
-                if (processedBills.length >= 3) {
-                    console.log("Batch limit reached (3). Stopping session.");
-                    break;
-                }
+                console.error(`DATABASE ERROR: Failed to insert ${bill.bill_id}:`, insertError);
+                return null;
             }
+
+            console.log(`SUCCESS: Published ${bill.bill_id}.`);
+            processedBills.push(bill.bill_id);
+            return bill.bill_id;
+        };
+
+        // Process bills in parallel (up to 3 at once)
+        const results = await Promise.allSettled(
+            billsToProcess.map(bill => processBill(bill))
+        );
+
+        // Log results
+        results.forEach((result, index) => {
+            if (result.status === 'rejected') {
+                console.error(`Bill ${billsToProcess[index].bill_id} failed:`, result.reason);
+            }
+        });
+
+        // If we processed 3 bills successfully and there are more, continue with next batch
+        if (processedBills.length === 3 && bills.length > 3) {
+            console.log(`\n--- Processing next batch of up to 3 bills ---`);
+            const remainingBills = bills.slice(3);
+            const remainingResults = await Promise.allSettled(
+                remainingBills.slice(0, 3).map(bill => processBill(bill))
+            );
+            
+            remainingResults.forEach((result, index) => {
+                if (result.status === 'fulfilled' && result.value) {
+                    console.log(`SUCCESS: Published ${result.value}.`);
+                } else if (result.status === 'rejected') {
+                    console.error(`Bill ${remainingBills[index].bill_id} failed:`, result.reason);
+                }
+            });
         }
 
         const duration = (Date.now() - startTime) / 1000;
