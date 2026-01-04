@@ -219,9 +219,6 @@ export default async function SearchPage({ searchParams }: SearchResultsProps) {
                 <p className="text-sm text-gray-600 line-clamp-3 mb-4">
                   {bill.tldr}
                 </p>
-                <div className="flex items-center text-xs text-gray-500">
-                  <span>Sponsored by {bill.sponsor_data?.sponsors?.[0]?.name || 'Unknown'}</span>
-                </div>
               </div>
             </Link>
           ))}
