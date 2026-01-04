@@ -40,18 +40,6 @@ export default async function LegislationSummary() {
 
     return (
         <div className="container mx-auto px-4 py-12">
-            <div className="max-w-3xl mx-auto mb-16 text-center">
-                <h1 className="text-4xl md:text-5xl font-serif font-black mb-4 tracking-tight text-zinc-900 uppercase">
-                    The Daily Law
-                </h1>
-                <p className="text-xl text-zinc-600 font-sans max-w-xl mx-auto">
-                    We read every bill so you don't have to.
-                    <span className="block mt-2 text-sm text-zinc-400 uppercase tracking-widest font-bold">
-                        Transparent • AI-Powered • Non-Partisan
-                    </span>
-                </p>
-            </div>
-
             {/* Featured Bill Section */}
             {featuredBill && (
                 <div className="max-w-4xl mx-auto mb-16">

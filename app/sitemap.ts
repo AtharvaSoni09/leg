@@ -51,7 +51,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             priority: 0.6,
         },
         {
-            url: 'https://thedailylaw.org/topics/congress',
+            url: 'https://thedailylaw.org/about/pipeline',
+            lastModified: new Date(),
+            changeFrequency: 'monthly',
+            priority: 0.6,
+        },
+        {
+            url: 'https://thedailylaw.org/about/disclaimer',
+            lastModified: new Date(),
+            changeFrequency: 'monthly',
+            priority: 0.6,
+        },
+        {
+            url: 'https://thedailylaw.org/newsletter',
+            lastModified: new Date(),
+            changeFrequency: 'monthly',
+            priority: 0.7,
+        },
+        {
+            url: 'https://thedailylaw.org/topics',
             lastModified: new Date(),
             changeFrequency: 'weekly',
             priority: 0.8,
