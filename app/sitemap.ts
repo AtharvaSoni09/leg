@@ -11,15 +11,54 @@ type Bill = {
     bill_id: string;
     url_slug: string;
     created_at: string;
+    update_date: string;
 };
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-    // Fetch all legislation entries from Supabase
-    const { data: bills } = await supabasePublic
-        .from('legislation')
-        .select('bill_id, url_slug, created_at');
+    try {
+        // Fetch all legislation entries from Supabase with error handling
+        const { data: bills, error } = await supabasePublic
+            .from('legislation')
+            .select('bill_id, url_slug, created_at, update_date')
+            .order('update_date', { ascending: false });
 
-    const staticUrls: MetadataRoute.Sitemap = [
+        if (error) {
+            console.error('Sitemap error fetching bills:', error);
+            // Return static URLs only if there's an error
+            return getStaticUrls();
+        }
+
+        if (!bills || bills.length === 0) {
+            console.log('No bills found in database');
+            return getStaticUrls();
+        }
+
+        console.log(`Found ${bills.length} bills for sitemap`);
+
+        // Map Supabase bills to sitemap URLs using standardized slugs
+        const legislationUrls = bills
+            .filter(bill => bill.url_slug && bill.url_slug.trim() !== '') // Filter out empty slugs
+            .map((bill) => ({
+                url: `https://thedailylaw.org/legislation-summary/${bill.url_slug}`,
+                lastModified: new Date(bill.update_date || bill.created_at), // Use update_date if available
+                changeFrequency: 'weekly' as const, // More frequent for bills
+                priority: 0.8,
+            }));
+
+        // Return full sitemap without duplicates
+        return [
+            ...getStaticUrls(),
+            ...legislationUrls,
+        ];
+
+    } catch (error) {
+        console.error('Sitemap generation error:', error);
+        return getStaticUrls();
+    }
+}
+
+function getStaticUrls(): MetadataRoute.Sitemap {
+    return [
         {
             url: 'https://thedailylaw.org',
             lastModified: new Date(),
@@ -128,32 +167,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             changeFrequency: 'monthly',
             priority: 0.7,
         },
-    ];
-
-    // Map Supabase bills to sitemap URLs using standardized slugs
-    const legislationUrls =
-        (bills as Bill[])?.map((bill) => ({
-            url: `https://thedailylaw.org/legislation-summary/${bill.url_slug}`,
-            lastModified: new Date(bill.created_at),
-            changeFrequency: 'monthly' as const,
-            priority: 0.8,
-        })) ?? [];
-
-    // Return full sitemap
-    return [
-        {
-            url: 'https://thedailylaw.org', // Homepage
-            lastModified: new Date(),
-            changeFrequency: 'daily',
-            priority: 1,
-        },
-        {
-            url: 'https://thedailylaw.org/legislation-summary', // Base legislation page
-            lastModified: new Date(),
-            changeFrequency: 'daily',
-            priority: 1,
-        },
-        ...staticUrls,
-        ...legislationUrls,
     ];
 }
